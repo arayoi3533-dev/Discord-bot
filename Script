@@ -1,296 +1,110 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-
-local Window = Rayfield:CreateWindow({
-   Name = "究極移動ハブ v5 | Discord追加",
-   LoadingTitle = "Loading...",
-   LoadingSubtitle = "by Grok - クリーン版",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "UltimateMoveHubV5",
-      FileName = "Config"
-   },
-   KeySystem = true,
-   KeySettings = {
-      Title = "究極移動ハブ",
-      Subtitle = "パスワード入力",
-      Note = "jsokkzwa",
-      FileName = "UltimateKeyV5",
-      SaveKey = true,
-      GrabKeyFromSite = false,
-      Key = {"jsokkzwa"}
-   }
-})
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+-- Banana Hub v2 | パス: jsokkzwa | 超シンプル強化
+local pass = "jsokkzwa"
+local UIS = game:GetService("UserInputService")
+local Players = game.Players
 local player = Players.LocalPlayer
 
--- 変数
-local wsValue = 200
-local jpValue = 150
-local flySpeed = 100
-local speedEnabled = false
-local jumpEnabled = false
-local infJumpEnabled = false
-local flyEnabled = false
-local noclipEnabled = false
+-- パスワード入力GUI（バナナ風）
+local sg = Instance.new("ScreenGui", game.CoreGui)
+local frame = Instance.new("Frame", sg)
+frame.Size = UDim2.new(0, 350, 0, 180)
+frame.Position = UDim2.new(0.5, -175, 0.5, -90)
+frame.BackgroundColor3 = Color3.fromRGB(255, 220, 0)  -- バナナ黄色！
+frame.BorderSizePixel = 4
+frame.BorderColor3 = Color3.fromRGB(200, 150, 0)
 
-local flyConnections = {}
-local noclipConnection = nil
+local title = Instance.new("TextLabel", frame)
+title.Text = "🍌 Banana Hub v2 🍌"
+title.Size = UDim2.new(1, 0, 0, 60)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(100, 50, 0)
+title.Font = Enum.Font.GothamBlack
+title.TextSize = 32
 
--- キャラ再生成時に復元
-local function onCharacterAdded(char)
-   local hum = char:WaitForChild("Humanoid")
-   if speedEnabled then hum.WalkSpeed = wsValue end
-   if jumpEnabled then hum.JumpPower = jpValue end
-end
+local tb = Instance.new("TextBox", frame)
+tb.Size = UDim2.new(0.8, 0, 0, 50)
+tb.Position = UDim2.new(0.1, 0, 0.4, 0)
+tb.PlaceholderText = "パスワードを入れてね (jsokkzwa)"
+tb.BackgroundColor3 = Color3.new(1,1,1)
+tb.TextColor3 = Color3.new(0,0,0)
+tb.Font = Enum.Font.Gotham
+tb.TextSize = 20
 
-player.CharacterAdded:Connect(onCharacterAdded)
-if player.Character then onCharacterAdded(player.Character) end
-
-local MainTab = Window:CreateTab("移動強化", 4483362458)
-
-MainTab:CreateSection("基本移動")
-
--- WalkSpeed
-local SpeedToggle = MainTab:CreateToggle({
-   Name = "🏃 WalkSpeed 強化",
-   CurrentValue = false,
-   Flag = "SpeedToggle",
-   Callback = function(Value)
-      speedEnabled = Value
-      local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-      if hum then hum.WalkSpeed = Value and wsValue or 16 end
-   end,
-})
-
-local SpeedSlider = MainTab:CreateSlider({
-   Name = "Speed 調整",
-   Range = {16, 500},
-   Increment = 10,
-   Suffix = "速",
-   CurrentValue = 200,
-   Flag = "SpeedSlider",
-   Callback = function(Value)
-      wsValue = Value
-      if speedEnabled then
-         local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-         if hum then hum.WalkSpeed = Value end
-      end
-   end,
-})
-
--- JumpPower
-local JumpToggle = MainTab:CreateToggle({
-   Name = "🦘 JumpPower 強化",
-   CurrentValue = false,
-   Flag = "JumpToggle",
-   Callback = function(Value)
-      jumpEnabled = Value
-      local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-      if hum then hum.JumpPower = Value and jpValue or 50 end
-   end,
-})
-
-local JumpSlider = MainTab:CreateSlider({
-   Name = "Jump 調整",
-   Range = {50, 500},
-   Increment = 10,
-   Suffix = "高",
-   CurrentValue = 150,
-   Flag = "JumpSlider",
-   Callback = function(Value)
-      jpValue = Value
-      if jumpEnabled then
-         local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-         if hum then hum.JumpPower = Value end
-      end
-   end,
-})
-
--- Infinite Jump
-local InfJumpToggle = MainTab:CreateToggle({
-   Name = "∞ 無限ジャンプ",
-   CurrentValue = false,
-   Flag = "InfJumpToggle",
-   Callback = function(Value)
-      infJumpEnabled = Value
-   end,
-})
-
-UserInputService.JumpRequest:Connect(function()
-   if infJumpEnabled then
-      local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-      if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
-   end
+local auth = false
+tb.FocusLost:Connect(function(enter)
+    if enter and tb.Text == pass then
+        sg:Destroy()
+        auth = true
+    end
 end)
 
-MainTab:CreateSection("Fly")
+repeat wait() until auth
 
-local FlySlider = MainTab:CreateSlider({
-   Name = "✈️ Fly 速度",
-   Range = {20, 400},
-   Increment = 10,
-   Suffix = "速",
-   CurrentValue = 100,
-   Flag = "FlySlider",
-   Callback = function(Value) flySpeed = Value end,
-})
+-- キャラ強化適用
+local function apply(char)
+    local hum = char:WaitForChild("Humanoid")
+    local root = char:WaitForChild("HumanoidRootPart")
+    
+    hum.WalkSpeed = 200
+    hum.JumpPower = 150
 
-local FlyToggle = MainTab:CreateToggle({
-   Name = "✈️ Fly (WASD + Space↑/Shift↓)",
-   CurrentValue = false,
-   Flag = "FlyToggle",
-   Callback = function(Value)
-      flyEnabled = Value
-      local char = player.Character
-      if not char then return end
-      local root = char:FindFirstChild("HumanoidRootPart")
-      local hum = char:FindFirstChildOfClass("Humanoid")
-      if not root or not hum then return end
+    -- 無限ジャンプ
+    UIS.JumpRequest:Connect(function()
+        hum:ChangeState(Enum.HumanoidStateType.Jumping)
+    end)
 
-      -- クリーンアップ
-      for _, conn in pairs(flyConnections) do conn:Disconnect() end
-      flyConnections = {}
-      if root:FindFirstChild("BodyVelocity") then root.BodyVelocity:Destroy() end
-      if root:FindFirstChild("BodyGyro") then root.BodyGyro:Destroy() end
-      hum.PlatformStand = false
+    -- キー操作
+    UIS.InputBegan:Connect(function(key)
+        if key.KeyCode == Enum.KeyCode.C then
+            local enabled = not root:FindFirstChild("BananaNoclip")
+            if enabled then
+                local conn = game.RunService.Stepped:Connect(function()
+                    for _, part in pairs(char:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end)
+                conn.Name = "BananaNoclip"
+                conn.Parent = root
+            else
+                if root:FindFirstChild("BananaNoclip") then
+                    root.BananaNoclip:Disconnect()
+                end
+            end
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "🍌 Banana Noclip";
+                Text = enabled and "ON！壁すり抜けバナナ〜" or "OFF";
+                Duration = 3
+            })
+        end
 
-      if Value then
-         hum.PlatformStand = true
-         local bv = Instance.new("BodyVelocity")
-         bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
-         bv.Velocity = Vector3.new(0,0,0)
-         bv.Parent = root
-         local bg = Instance.new("BodyGyro")
-         bg.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
-         bg.P = 9000
-         bg.CFrame = workspace.CurrentCamera.CFrame
-         bg.Parent = root
+        if key.KeyCode == Enum.KeyCode.F then
+            setclipboard("https://discord.gg/Ax9yJDR6sV")
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "🍌 Banana Discord";
+                Text = "招待リンクコピーしたよ！来てね〜";
+                Duration = 4
+            })
+        end
 
-         local keys = {w=false, s=false, a=false, d=false, space=false, lshift=false}
-         local yVel = 0
-
-         flyConnections[#flyConnections+1] = UserInputService.InputBegan:Connect(function(inp)
-            local k = inp.KeyCode.Name:lower()
-            if keys[k] ~= nil then keys[k] = true end
-         end)
-         flyConnections[#flyConnections+1] = UserInputService.InputEnded:Connect(function(inp)
-            local k = inp.KeyCode.Name:lower()
-            if keys[k] ~= nil then keys[k] = false end
-         end)
-         flyConnections[#flyConnections+1] = RunService.Heartbeat:Connect(function()
-            if not flyEnabled then return end
-            local cam = workspace.CurrentCamera
-            local move = Vector3.new()
-            if keys.w then move = move + cam.CFrame.LookVector end
-            if keys.s then move = move - cam.CFrame.LookVector end
-            if keys.a then move = move - cam.CFrame.RightVector end
-            if keys.d then move = move + cam.CFrame.RightVector end
-            if keys.space then yVel = yVel + 4 end
-            if keys.lshift then yVel = yVel - 4 end
-            yVel = yVel * 0.85
-            move = move.Unit * flySpeed
-            bv.Velocity = Vector3.new(move.X, yVel, move.Z)
-            bg.CFrame = cam.CFrame
-         end)
-      end
-      Rayfield:Notify({Title="Fly", Content=Value and "ON" or "OFF", Duration=2})
-   end,
-})
-
-MainTab:CreateSection("Player Teleport")
-
--- プレイヤーリスト
-local playerList = {"なし"}
-local function updatePlayerList()
-   playerList = {"なし"}
-   for _, p in pairs(Players:GetPlayers()) do
-      if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-         table.insert(playerList, p.Name)
-      end
-   end
-   table.sort(playerList, function(a,b) return a ~= "なし" and (b == "なし" or a < b) end)
+        if key.KeyCode == Enum.KeyCode.E then
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "🍌 お知らせ";
+                Text = "Flyは今メンテナンス中だよ🍌";
+                Duration = 3
+            })
+        end
+    end)
 end
 
-updatePlayerList()
+-- 初回＆リスポーン対応
+if player.Character then apply(player.Character) end
+player.CharacterAdded:Connect(apply)
 
-local PlayerDropdown = MainTab:CreateDropdown({
-   Name = "👥 テレポート先プレイヤー",
-   Options = playerList,
-   CurrentOption = {"なし"},
-   MultipleOptions = false,
-   Flag = "PlayerTPDrop",
-   Callback = function(Option)
-      -- 選択のみ
-   end,
-})
-
--- TPボタン
-MainTab:CreateButton({
-   Name = "🚀 選択プレイヤーにTP",
-   Callback = function()
-      updatePlayerList()
-      PlayerDropdown:Refresh(playerList, true)
-      local selected = PlayerDropdown.CurrentOption[1]
-      if selected == "なし" then
-         Rayfield:Notify({Title="エラー", Content="プレイヤー選択して！", Duration=3})
-         return
-      end
-      local target = Players:FindFirstChild(selected)
-      if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-         local myRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-         if myRoot then
-            myRoot.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
-            Rayfield:Notify({Title="TP成功", Content=selected .. " にTP！", Duration=3})
-         end
-      else
-         Rayfield:Notify({Title="エラー", Content="対象不在", Duration=3})
-      end
-   end,
-})
-
-MainTab:CreateSection("すり抜け & Discord")
-
-local NoclipToggle = MainTab:CreateToggle({
-   Name = "👻 Noclip (壁すり抜け)",
-   CurrentValue = false,
-   Flag = "NoclipToggle",
-   Callback = function(Value)
-      noclipEnabled = Value
-      if noclipConnection then noclipConnection:Disconnect() end
-      if Value then
-         noclipConnection = RunService.Stepped:Connect(function()
-            local char = player.Character
-            if char then
-               for _, part in pairs(char:GetDescendants()) do
-                  if part:IsA("BasePart") and part.CanCollide then
-                     part.CanCollide = false
-                  end
-               end
-            end
-         end)
-      end
-      Rayfield:Notify({Title="Noclip", Content=Value and "ON" or "OFF", Duration=2})
-   end,
-})
-
--- Discordボタン
-MainTab:CreateButton({
-   Name = "📱 Discord招待コピー",
-   Callback = function()
-      setclipboard("https://discord.gg/Ax9yJDR6sV")
-      Rayfield:Notify({
-         Title = "コピー完了！",
-         Content = "https://discord.gg/Ax9yJDR6sV をクリップボードにコピー",
-         Duration = 4
-      })
-   end,
-})
-
-Rayfield:Notify({
-   Title = "v5 起動！ Discord追加",
-   Content = "パス: jsokkzwa\nDiscordボタンで招待コピー！",
-   Duration = 8
+-- 起動通知（バナナ全開）
+game.StarterGui:SetCore("SendNotification", {
+    Title = "🍌 Banana Hub v2 起動！🍌";
+    Text = "Speed200 + 無限ジャンプ常時ON！\nC = Noclip | F = Discordコピー\nFlyはメンテ中だよ〜";
+    Duration = 12
 })
