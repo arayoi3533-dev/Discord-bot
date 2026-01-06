@@ -1,43 +1,19 @@
-local scriptUrl = "https://raw.githubusercontent.com/arayoi3533-dev/Discord-bot/main/main.lua"
-
-local success, err = pcall(function()
-    loadstring(game:HttpGet(scriptUrl))()
-end)
-
-if not success then
-    warn("Script Load Failed:", err)
-end
--- Banana Hub v2 | パス: jsokkzwa | 超シンプル強化
+-- 最終まとめ版 強化ハブ | パス: jsokkzwa | Flyメンテ中
 local pass = "jsokkzwa"
 local UIS = game:GetService("UserInputService")
 local Players = game.Players
 local player = Players.LocalPlayer
 
--- パスワード入力GUI（バナナ風）
+-- パスワード入力GUI
 local sg = Instance.new("ScreenGui", game.CoreGui)
-local frame = Instance.new("Frame", sg)
-frame.Size = UDim2.new(0, 350, 0, 180)
-frame.Position = UDim2.new(0.5, -175, 0.5, -90)
-frame.BackgroundColor3 = Color3.fromRGB(255, 220, 0)  -- バナナ黄色！
-frame.BorderSizePixel = 4
-frame.BorderColor3 = Color3.fromRGB(200, 150, 0)
-
-local title = Instance.new("TextLabel", frame)
-title.Text = "🍌 Banana Hub v2 🍌"
-title.Size = UDim2.new(1, 0, 0, 60)
-title.BackgroundTransparency = 1
-title.TextColor3 = Color3.fromRGB(100, 50, 0)
-title.Font = Enum.Font.GothamBlack
-title.TextSize = 32
-
-local tb = Instance.new("TextBox", frame)
-tb.Size = UDim2.new(0.8, 0, 0, 50)
-tb.Position = UDim2.new(0.1, 0, 0.4, 0)
-tb.PlaceholderText = "パスワードを入れてね (jsokkzwa)"
-tb.BackgroundColor3 = Color3.new(1,1,1)
-tb.TextColor3 = Color3.new(0,0,0)
-tb.Font = Enum.Font.Gotham
-tb.TextSize = 20
+local tb = Instance.new("TextBox", sg)
+tb.Size = UDim2.new(0, 300, 0, 60)
+tb.Position = UDim2.new(0.5, -150, 0.5, -30)
+tb.PlaceholderText = "パスワード入力 (jsokkzwa)"
+tb.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+tb.TextColor3 = Color3.new(1, 1, 1)
+tb.Font = Enum.Font.GothamBold
+tb.TextSize = 24
 
 local auth = false
 tb.FocusLost:Connect(function(enter)
@@ -49,11 +25,10 @@ end)
 
 repeat wait() until auth
 
--- キャラ強化適用
+-- キャラ取得＆強化適用
 local function apply(char)
     local hum = char:WaitForChild("Humanoid")
     local root = char:WaitForChild("HumanoidRootPart")
-    
     hum.WalkSpeed = 200
     hum.JumpPower = 150
 
@@ -62,10 +37,10 @@ local function apply(char)
         hum:ChangeState(Enum.HumanoidStateType.Jumping)
     end)
 
-    -- キー操作
+    -- Noclip (Cキー)
     UIS.InputBegan:Connect(function(key)
         if key.KeyCode == Enum.KeyCode.C then
-            local enabled = not root:FindFirstChild("BananaNoclip")
+            local enabled = not root:FindFirstChild("NoclipConn")
             if enabled then
                 local conn = game.RunService.Stepped:Connect(function()
                     for _, part in pairs(char:GetDescendants()) do
@@ -74,46 +49,47 @@ local function apply(char)
                         end
                     end
                 end)
-                conn.Name = "BananaNoclip"
+                conn.Name = "NoclipConn"
                 conn.Parent = root
             else
-                if root:FindFirstChild("BananaNoclip") then
-                    root.BananaNoclip:Disconnect()
-                end
+                local conn = root:FindFirstChild("NoclipConn")
+                if conn then conn:Disconnect() end
             end
             game.StarterGui:SetCore("SendNotification", {
-                Title = "🍌 Banana Noclip";
-                Text = enabled and "ON！壁すり抜けバナナ〜" or "OFF";
+                Title = "Noclip";
+                Text = enabled and "ON" or "OFF";
+                Duration = 2
+            })
+        end
+
+        -- Discordコピー (Fキー)
+        if key.KeyCode == Enum.KeyCode.F then
+            setclipboard("https://discord.gg/Ax9yJDR6sV")
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "Discord";
+                Text = "招待リンクコピー完了！";
                 Duration = 3
             })
         end
 
-        if key.KeyCode == Enum.KeyCode.F then
-            setclipboard("https://discord.gg/Ax9yJDR6sV")
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "🍌 Banana Discord";
-                Text = "招待リンクコピーしたよ！来てね〜";
-                Duration = 4
-            })
-        end
-
+        -- Flyメンテナンス中 (Eキー)
         if key.KeyCode == Enum.KeyCode.E then
             game.StarterGui:SetCore("SendNotification", {
-                Title = "🍌 お知らせ";
-                Text = "Flyは今メンテナンス中だよ🍌";
+                Title = "お知らせ";
+                Text = "Flyは現在メンテナンス中です";
                 Duration = 3
             })
         end
     end)
 end
 
--- 初回＆リスポーン対応
+-- 初回適用
 if player.Character then apply(player.Character) end
 player.CharacterAdded:Connect(apply)
 
--- 起動通知（バナナ全開）
+-- 起動通知
 game.StarterGui:SetCore("SendNotification", {
-    Title = "🍌 Banana Hub v2 起動！🍌";
-    Text = "Speed200 + 無限ジャンプ常時ON！\nC = Noclip | F = Discordコピー\nFlyはメンテ中だよ〜";
-    Duration = 12
+    Title = "強化ハブ起動！";
+    Text = "Speed200 + 無限ジャンプ常時ON\nC = Noclip | F = Discordコピー\nFlyはメンテナンス中";
+    Duration = 10
 })
